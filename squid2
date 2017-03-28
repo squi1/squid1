@@ -1,0 +1,55 @@
+acl vps4 dstdomain -i .br
+acl vps5 dstdomain -i .com
+acl vps6 dstdomain -i .sv
+acl payloads dstdomain -i "/etc/squid3/payload.txt"
+acl formato_arquivo url_regex -i "/etc/squid3/formato_arquivo.txt"
+acl sites_bloqueados url_regex -i "/etc/squid3/sites_bloqueados.txt"
+acl netflix dstdomain .netflix.
+acl youtube dstdomain .youtube.
+acl youtube dstdomain .facebook.
+acl downloads_proibidos url_regex -i \.torrent
+
+acl CONNECT method CONNECT
+acl GET method GET
+acl POST method POST
+acl OPTIONS method OPTIONS
+acl HEAD method HEAD
+
+http_access allow payloads
+http_access allow url1
+http_access allow url2
+http_access allow url3
+http_access allow vps4
+http_access allow vps5
+http_access allow vps6
+http_access deny formato_arquivo
+http_access deny sites_bloqueados
+http_access allow netflix
+http_access allow youtube
+http_access allow facebook
+http_access deny downloads_proibidos
+http_access deny all
+
+http_port 80
+http_port 8080
+http_port 8799
+http_port 3128
+
+visible_hostname Telegram:@NetGratisMobileE
+
+cache_mem 100 MB
+maximum_object_size_in_memory 64 KB
+maximum_object_size_in_memory 1 MB
+maximum_object_size 1024 MB
+minimum_object_size 0 KB
+cache_dir ufs /var/spool/squid3 2048 16 256
+cache_access_log /var/log/squid3/access.log
+cache_swap_low 93
+cache_swap_high 95
+refresh_pattern ^ftp: 15 20% 2280
+refresh_pattern ^gopher: 15 0% 2280
+refresh_pattern . 15 20% 2280
+pid_filename /var/log/squid3/squid3.pid
+
+forwarded_for off
+via off
