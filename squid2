@@ -6,7 +6,7 @@ acl formato_arquivo url_regex -i "/etc/squid3/formato_arquivo.txt"
 acl sites_bloqueados url_regex -i "/etc/squid3/sites_bloqueados.txt"
 acl netflix dstdomain .netflix.
 acl youtube dstdomain .youtube.
-acl youtube dstdomain .facebook.
+acl facebook dstdomain .facebook.
 acl downloads_proibidos url_regex -i \.torrent
 
 acl CONNECT method CONNECT
