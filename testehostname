@@ -1,0 +1,368 @@
+#!/bin/bash
+# (1=vermelho; 2=verde; 3=amarelo; 4=azul; 5=roxo; 6=azul claro; 7=branco; 9=limpa)
+tput setaf 7 ; tput setab 4 ; tput bold ; printf '%35s%s%-20s\n' "  ManagerManimEdicoes Telegram @FranciscoManim  " ; tput sgr0
+tput setaf 3 ; tput bold ; echo "" ; echo "  Debian, Ubuntu e CentOS (32|64 bits), Este script irá:  " ; echo ""
+echo "● Instalar e configurar o PROXY SQUID nas portas 80 8080 8799 e 3128"
+echo "● Configurar autolimpeza do squid cache mantendo-o rápido"
+echo "● Instalar 'log de acesso' de sites visitados pelos usuários"
+echo "● Bloquear: TORRENT e proteger contra ataques Ddos, Syn, ..."
+echo "● Liberar: Youtube HD, NetFlix BR, Áudio e VideoChamada em Redes Sociais"
+echo "● Instalar Banner e vários comandos para o gerenciamento do VPS" ; tput sgr0
+echo ""
+tput setaf 6 ; tput bold ; read -n 1 -s -p " Aperte qualquer tecla para continuar ou Ctrl+c para cancelar... " ; echo "" ; echo "" ; tput sgr0
+IP=$(wget -qO- ipv4.icanhazip.com)
+read -p "Confirme se este IP é do seu servidor: " -e -i $IP ipdovps
+if [ -z "$ipdovps" ]
+then
+	tput setaf 7 ; tput setab 1 ; tput bold ; echo "" ; echo "" ; echo " IP deste servidor está errado. Tente novamente. " ; echo "" ; echo "" ; tput sgr0
+	exit 1
+fi
+if [ -f "/root/usuarios.db" ]
+then
+tput setaf 5 ; tput bold ;	echo ""
+	echo " Uma Base de Dados de Usuários ('usuarios.db') foi encontrada!"
+	echo " Deseja mantê-la (mantendo o limite de conexões de usuários nesta base de dados)"
+	echo " ou criar uma nova base de dados do ZERO?"
+	tput setaf 6 ; tput bold ;	echo ""
+	echo "[1] Manter 'Base de Dados' Atual, ela não sofrerá mudanças."
+	echo "[2] Criar uma Nova 'Base de Dados', refaz o arquivo do zero."
+	echo "" ; tput sgr0
+	read -p " Opção?: " -e -i 1 optiondb
+else
+	awk -F : '$3 >= 500 { print $1 " 1" }' /etc/passwd | grep -v '^nobody' > /root/usuarios.db
+fi
+echo ""
+read -p " Ativar a 'compressão SSH' (pode usar mais memória RAM)? [s/n]) " -e -i n sshcompression
+echo ""
+tput setaf 7 ; tput setab 4 ; tput bold ; echo "" ; echo " Aguarde a configuração automática do seu VPS " ; echo "" ; tput sgr0
+sleep 3
+apt-get update -y
+yum update -y
+apt-get install iptables -y
+yum install iptables -y
+rm -r /bin/banner /bin/firewallsafe /bin/firewallblok /bin/log /bin/midiablok /bin/midiasafe /bin/relogio /bin/sitesafe /bin/siteblok /bin/badvpn /bin/expirados /bin/latencia /bin/sistema /bin/listar /bin/expcleaner /bin/apagar /bin/criar /bin/criarusuario /bin/ajuda /bin/apps /bin/payloads /bin/delhost /bin/addhost /bin/detalhes /bin/limitador /bin/sshlimiter /bin/limpar /bin/monitor /bin/monitorar /bin/mudardata /bin/mudarlimite /bin/mudarsenha /bin/velocidade /bin/velocimetro /bin/velocimetro.py > /dev/null
+rm -r /root/ExpCleaner.sh /root/CriarUsuario.sh /root/sshlimiter.sh > /dev/null
+apt-get purge dropbear -y
+apt-get autoremove dropbear -y
+yum purge dropbear -y
+rm -r /etc/dropbear
+apt-get install squid3 bc screen nano unzip dos2unix wget -y
+yum install squid bc screen nano unzip dos2unix wget -y
+wget ftp://cathbard.com/binary/inxi*.deb
+sudo dpkg -i inxi*
+sudo apt-get -f install
+killall apache2
+apt-get purge apache2 -y
+killall httpd
+yum remove httpd -y
+# comando teste de adicionar hostname automaticamente:
+hostname=$(hostname)
+# fim do teste
+if [ -f "/usr/sbin/ufw" ] ; then
+	ufw allow 443/tcp ; ufw allow 80/tcp ; ufw allow 3128/tcp ; ufw allow 8080/tcp ; ufw allow 8799/tcp ;
+fi
+if [ -d "/etc/squid3/" ]
+then
+	wget https://raw.githubusercontent.com/squi1/squid1/master/squid1 -O /tmp/sqd1
+	echo "acl url3 dstdomain -i $ipdovps" > /tmp/sqd2
+	wget https://pastebin.com/raw/uvPdc8yK -O /tmp/sqd3
+	cat /tmp/sqd1 /tmp/sqd2 /tmp/sqd3 > /etc/squid3/squid.conf
+	wget https://pastebin.com/raw/AiqEbxrt -O /etc/squid3/payload.txt
+	echo " " >> /etc/squid3/payload.txt
+	wget https://pastebin.com/raw/1F5GCME8 -O /etc/squid3/sites_bloqueados.txt
+	echo " " >> /etc/squid3/sites_bloqueados.txt
+	wget https://pastebin.com/raw/uiZ317L0 -O /etc/squid3/formato_arquivo.txt
+	echo " " >> /etc/squid3/formato_arquivo.txt
+	wget https://pastebin.com/raw/09iQEVdi -O /var/log/squid3/access.log
+	echo " " >> /var/log/squid3/access.log
+	wget https://pastebin.com/raw/cnXPSyWS -O /var/log/squid3/squid3.pid
+	echo " " >> /var/log/squid3/squid3.pid
+	grep -v "^Port 443" /etc/ssh/sshd_config > /tmp/ssh && mv /tmp/ssh /etc/ssh/sshd_config
+	echo "Port 443" >> /etc/ssh/sshd_config
+	grep -v "^PasswordAuthentication yes" /etc/ssh/sshd_config > /tmp/passlogin && mv /tmp/passlogin /etc/ssh/sshd_config
+	echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config
+	grep -v "^PermitTunnel yes" /etc/ssh/sshd_config > /tmp/ssh && mv /tmp/ssh /etc/ssh/sshd_config
+	echo "PermitTunnel yes" >> /etc/ssh/sshd_config
+	grep -v "^#UseDns yes" /etc/ssh/sshd_config > /tmp/ssh && mv /tmp/ssh /etc/ssh/sshd_config
+	echo "#UseDns yes" >> /etc/ssh/sshd_config
+	grep -v "^Banner /etc/banner" /etc/ssh/sshd_config > /tmp/ssh && mv /tmp/ssh /etc/ssh/sshd_config
+	echo "Banner /etc/banner" >> /etc/ssh/sshd_config
+	wget https://pastebin.com/raw/AVykxqrb -O /bin/addhost
+	dos2unix /bin/addhost
+	chmod +x /bin/addhost
+	wget https://pastebin.com/raw/NNVj7piD -O /bin/criar
+	dos2unix /bin/criar
+	chmod +x /bin/criar
+	wget https://pastebin.com/raw/HTjRdGLG -O /bin/criarusuario
+	dos2unix /bin/criarusuario
+	chmod +x /bin/criarusuario
+	wget https://pastebin.com/raw/bzhsYawA -O /bin/detalhes
+	dos2unix /bin/detalhes
+	chmod +x /bin/detalhes
+	wget https://pastebin.com/raw/6XPm3Ra1 -O /bin/mudardata
+	dos2unix /bin/mudardata
+	chmod +x /bin/mudardata
+	wget https://pastebin.com/raw/pKgpf6jC -O /bin/log
+	dos2unix /bin/log
+	chmod +x /bin/log
+	wget https://pastebin.com/raw/iXFLGpCt -O /bin/sshlimiter
+	dos2unix /bin/sshlimiter
+	chmod +x /bin/sshlimiter
+	wget https://pastebin.com/raw/cnt2PfUx -O /bin/limpar
+	dos2unix /bin/limpar
+	chmod +x /bin/limpar
+	wget https://pastebin.com/raw/EFba7WRd -O /bin/monitor
+	dos2unix /bin/monitor
+	chmod +x /bin/monitor
+	wget https://pastebin.com/raw/yD3HfFqu -O /bin/monitorar
+	dos2unix /bin/monitorar
+	chmod +x /bin/monitorar
+	wget https://pastebin.com/raw/XK6UK4xV -O /bin/mudarlimite
+	dos2unix /bin/mudarlimite
+	chmod +x /bin/mudarlimite
+	wget https://pastebin.com/raw/xBbxtVq4 -O /bin/mudarsenha
+	dos2unix /bin/mudarsenha
+	chmod +x /bin/mudarsenha
+	wget https://pastebin.com/raw/Yd0eRqSN -O /bin/delhost
+	dos2unix /bin/delhost
+	chmod +x /bin/delhost
+	wget https://pastebin.com/raw/gS1Bcy0f -O /bin/apagar
+	dos2unix /bin/apagar
+	chmod +x /bin/apagar
+	wget https://pastebin.com/raw/g4CNRbjB -O /bin/apps
+	dos2unix /bin/apps
+	chmod +x /bin/apps
+	wget https://pastebin.com/raw/p7iRinNd -O /bin/velocidade
+	dos2unix /bin/velocidade
+	chmod +x /bin/velocidade
+	wget https://pastebin.com/raw/WhgnJrDs -O /bin/velocimetro
+	dos2unix /bin/velocimetro
+	chmod +x /bin/velocimetro
+	wget https://pastebin.com/raw/BxMc1gAF -O /bin/velocimetro.py
+	dos2unix /bin/velocimetro.py
+	chmod +x /bin/velocimetro.py
+	wget https://pastebin.com/raw/zVb5yaZc -O /bin/badvpn
+	dos2unix /bin/badvpn
+	chmod +x /bin/badvpn
+	wget https://pastebin.com/raw/P0LFb4za -O /bin/relogio
+	dos2unix /bin/relogio
+	chmod +x /bin/relogio
+	wget https://pastebin.com/raw/C7bNAmNW -O /bin/latencia
+	dos2unix /bin/latencia
+	chmod +x /bin/latencia
+	wget https://pastebin.com/raw/vRhV0iJZ -O /bin/ajuda
+	dos2unix /bin/ajuda
+	chmod +x /bin/ajuda
+	wget https://pastebin.com/raw/KKr545d3 -O /bin/sistema
+	dos2unix /bin/sistema
+	chmod +x /bin/sistema
+	wget https://pastebin.com/raw/DXGMRHhU -O /bin/banner
+	dos2unix /bin/banner
+	chmod +x /bin/banner
+	wget https://pastebin.com/raw/jmUDZbUT -O /bin/midiasafe
+	dos2unix /bin/midiasafe
+	chmod +x /bin/midiasafe
+	wget https://pastebin.com/raw/w3JXpfMS -O /bin/midiablok
+	dos2unix /bin/midiablok
+	chmod +x /bin/midiablok
+	wget https://pastebin.com/raw/K8xika0Q -O /bin/siteblok
+	dos2unix /bin/siteblok
+	chmod +x /bin/siteblok
+	wget https://pastebin.com/raw/xmjSM91B -O /bin/sitesafe
+	dos2unix /bin/sitesafe
+	chmod +x /bin/sitesafe
+	wget https://pastebin.com/raw/9wuKapAw -O /bin/expirados
+	dos2unix /bin/expirados
+	chmod +x /bin/expirados
+	wget https://pastebin.com/raw/EYC0vhcU -O /bin/firewallblok
+	dos2unix /bin/firewallblok
+	chmod +x /bin/firewallblok
+	wget https://pastebin.com/raw/qVWgCVQa -O /bin/firewallsafe
+	dos2unix /bin/firewallsafe
+	chmod +x /bin/firewallsafe
+	wget https://pastebin.com/raw/WXSkQ1KQ -O /bin/limitador
+	dos2unix /bin/limitador
+	chmod +x /bin/limitador
+	wget https://pastebin.com/raw/E6vhtUxD -O /bin/trafego
+	dos2unix /bin/trafego
+	chmod +x /bin/trafego
+	wget https://pastebin.com/raw/MMwH2T6a -O /bin/loginseguro
+	dos2unix /bin/loginseguro
+	chmod +x /bin/loginseguro
+	wget https://pastebin.com/raw/ry8eSjmH -O /bin/logingerar
+	dos2unix /bin/logingerar
+	chmod +x /bin/logingerar
+	if [ ! -f "/etc/init.d/squid3" ]
+	then
+		service squid3 reload > /dev/null
+	else
+		/etc/init.d/squid3 reload > /dev/null
+	fi
+	if [ ! -f "/etc/init.d/ssh" ]
+	then
+		service ssh reload > /dev/null
+	else
+		/etc/init.d/ssh reload > /dev/null
+	fi
+fi
+if [ -d "/etc/squid/" ]
+then
+	wget https://raw.githubusercontent.com/squi1/squid1/master/squid1 -O /tmp/sqd1
+	echo "acl url3 dstdomain -i $ipdovps" > /tmp/sqd2
+	wget https://pastebin.com/raw/uvPdc8yK -O /tmp/sqd3
+	cat /tmp/sqd1 /tmp/sqd2 /tmp/sqd3 > /etc/squid3/squid.conf
+	wget https://pastebin.com/raw/AiqEbxrt -O /etc/squid3/payload.txt
+	echo " " >> /etc/squid3/payload.txt
+	wget https://pastebin.com/raw/1F5GCME8 -O /etc/squid3/sites_bloqueados.txt
+	echo " " >> /etc/squid3/sites_bloqueados.txt
+	wget https://pastebin.com/raw/uiZ317L0 -O /etc/squid3/formato_arquivo.txt
+	echo " " >> /etc/squid3/formato_arquivo.txt
+	wget https://pastebin.com/raw/09iQEVdi -O /var/log/squid3/access.log
+	echo " " >> /var/log/squid3/access.log
+	wget https://pastebin.com/raw/cnXPSyWS -O /var/log/squid3/squid3.pid
+	echo " " >> /var/log/squid3/squid3.pid
+	grep -v "^Port 443" /etc/ssh/sshd_config > /tmp/ssh && mv /tmp/ssh /etc/ssh/sshd_config
+	echo "Port 443" >> /etc/ssh/sshd_config
+	grep -v "^PasswordAuthentication yes" /etc/ssh/sshd_config > /tmp/passlogin && mv /tmp/passlogin /etc/ssh/sshd_config
+	echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config
+	grep -v "^PermitTunnel yes" /etc/ssh/sshd_config > /tmp/ssh && mv /tmp/ssh /etc/ssh/sshd_config
+	echo "PermitTunnel yes" >> /etc/ssh/sshd_config
+	grep -v "^#UseDns yes" /etc/ssh/sshd_config > /tmp/ssh && mv /tmp/ssh /etc/ssh/sshd_config
+	echo "#UseDns yes" >> /etc/ssh/sshd_config
+	grep -v "^Banner /etc/banner" /etc/ssh/sshd_config > /tmp/ssh && mv /tmp/ssh /etc/ssh/sshd_config
+	echo "Banner /etc/banner" >> /etc/ssh/sshd_config
+	wget https://pastebin.com/raw/AVykxqrb -O /bin/addhost
+	dos2unix /bin/addhost
+	chmod +x /bin/addhost
+	wget https://pastebin.com/raw/NNVj7piD -O /bin/criar
+	dos2unix /bin/criar
+	chmod +x /bin/criar
+	wget https://pastebin.com/raw/HTjRdGLG -O /bin/criarusuario
+	dos2unix /bin/criarusuario
+	chmod +x /bin/criarusuario
+	wget https://pastebin.com/raw/bzhsYawA -O /bin/detalhes
+	dos2unix /bin/detalhes
+	chmod +x /bin/detalhes
+	wget https://pastebin.com/raw/6XPm3Ra1 -O /bin/mudardata
+	dos2unix /bin/mudardata
+	chmod +x /bin/mudardata
+	wget https://pastebin.com/raw/pKgpf6jC -O /bin/log
+	dos2unix /bin/log
+	chmod +x /bin/log
+	wget https://pastebin.com/raw/iXFLGpCt -O /bin/sshlimiter
+	dos2unix /bin/sshlimiter
+	chmod +x /bin/sshlimiter
+	wget https://pastebin.com/raw/cnt2PfUx -O /bin/limpar
+	dos2unix /bin/limpar
+	chmod +x /bin/limpar
+	wget https://pastebin.com/raw/EFba7WRd -O /bin/monitor
+	dos2unix /bin/monitor
+	chmod +x /bin/monitor
+	wget https://pastebin.com/raw/yD3HfFqu -O /bin/monitorar
+	dos2unix /bin/monitorar
+	chmod +x /bin/monitorar
+	wget https://pastebin.com/raw/XK6UK4xV -O /bin/mudarlimite
+	dos2unix /bin/mudarlimite
+	chmod +x /bin/mudarlimite
+	wget https://pastebin.com/raw/xBbxtVq4 -O /bin/mudarsenha
+	dos2unix /bin/mudarsenha
+	chmod +x /bin/mudarsenha
+	wget https://pastebin.com/raw/Yd0eRqSN -O /bin/delhost
+	dos2unix /bin/delhost
+	chmod +x /bin/delhost
+	wget https://pastebin.com/raw/gS1Bcy0f -O /bin/apagar
+	dos2unix /bin/apagar
+	chmod +x /bin/apagar
+	wget https://pastebin.com/raw/g4CNRbjB -O /bin/apps
+	dos2unix /bin/apps
+	chmod +x /bin/apps
+	wget https://pastebin.com/raw/p7iRinNd -O /bin/velocidade
+	dos2unix /bin/velocidade
+	chmod +x /bin/velocidade
+	wget https://pastebin.com/raw/WhgnJrDs -O /bin/velocimetro
+	dos2unix /bin/velocimetro
+	chmod +x /bin/velocimetro
+	wget https://pastebin.com/raw/BxMc1gAF -O /bin/velocimetro.py
+	dos2unix /bin/velocimetro.py
+	chmod +x /bin/velocimetro.py
+	wget https://pastebin.com/raw/zVb5yaZc -O /bin/badvpn
+	dos2unix /bin/badvpn
+	chmod +x /bin/badvpn
+	wget https://pastebin.com/raw/P0LFb4za -O /bin/relogio
+	dos2unix /bin/relogio
+	chmod +x /bin/relogio
+	wget https://pastebin.com/raw/C7bNAmNW -O /bin/latencia
+	dos2unix /bin/latencia
+	chmod +x /bin/latencia
+	wget https://pastebin.com/raw/vRhV0iJZ -O /bin/ajuda
+	dos2unix /bin/ajuda
+	chmod +x /bin/ajuda
+	wget https://pastebin.com/raw/KKr545d3 -O /bin/sistema
+	dos2unix /bin/sistema
+	chmod +x /bin/sistema
+	wget https://pastebin.com/raw/DXGMRHhU -O /bin/banner
+	dos2unix /bin/banner
+	chmod +x /bin/banner
+	wget https://pastebin.com/raw/jmUDZbUT -O /bin/midiasafe
+	dos2unix /bin/midiasafe
+	chmod +x /bin/midiasafe
+	wget https://pastebin.com/raw/w3JXpfMS -O /bin/midiablok
+	dos2unix /bin/midiablok
+	chmod +x /bin/midiablok
+	wget https://pastebin.com/raw/K8xika0Q -O /bin/siteblok
+	dos2unix /bin/siteblok
+	chmod +x /bin/siteblok
+	wget https://pastebin.com/raw/xmjSM91B -O /bin/sitesafe
+	dos2unix /bin/sitesafe
+	chmod +x /bin/sitesafe
+	wget https://pastebin.com/raw/9wuKapAw -O /bin/expirados
+	dos2unix /bin/expirados
+	chmod +x /bin/expirados
+	wget https://pastebin.com/raw/EYC0vhcU -O /bin/firewallblok
+	dos2unix /bin/firewallblok
+	chmod +x /bin/firewallblok
+	wget https://pastebin.com/raw/qVWgCVQa -O /bin/firewallsafe
+	dos2unix /bin/firewallsafe
+	chmod +x /bin/firewallsafe
+	wget https://pastebin.com/raw/WXSkQ1KQ -O /bin/limitador
+	dos2unix /bin/limitador
+	chmod +x /bin/limitador
+	wget https://pastebin.com/raw/E6vhtUxD -O /bin/trafego
+	dos2unix /bin/trafego
+	chmod +x /bin/trafego
+	wget https://pastebin.com/raw/MMwH2T6a -O /bin/loginseguro
+	dos2unix /bin/loginseguro
+	chmod +x /bin/loginseguro
+	wget https://pastebin.com/raw/ry8eSjmH -O /bin/logingerar
+	dos2unix /bin/logingerar
+	chmod +x /bin/logingerar
+	if [ ! -f "/etc/init.d/squid3" ]
+	then
+		service squid reload > /dev/null
+	else
+		/etc/init.d/squid reload > /dev/null
+	fi
+	if [ ! -f "/etc/init.d/ssh" ]
+	then
+		service ssh reload > /dev/null
+	else
+		/etc/init.d/ssh reload > /dev/null
+	fi
+fi
+echo ""
+tput setaf 7 ; tput setab 4 ; tput bold ; echo " Proxy Squid Instalado e rodando nas portas: 80 8080 8799 e 3128" ; tput sgr0
+tput setaf 7 ; tput setab 4 ; tput bold ; echo " Canal Telegram: @NetGratisMobileE Dono: @FranciscoManim" ; tput sgr0
+tput setaf 7 ; tput setab 4 ; tput bold ; echo " No 'Virtual Master' dê o comando 'reboot' para funcionar" ; tput sgr0
+tput setaf 7 ; tput setab 4 ; tput bold ; echo " Para ver os 'COMANDOS DISPONÍVEIS' dê o comando: ajuda" ; tput sgr0
+echo ""
+if [[ "$optiondb" = '2' ]]; then
+	awk -F : '$3 >= 500 { print $1 " 1" }' /etc/passwd | grep -v '^nobody' > /root/usuarios.db
+fi
+if [[ "$sshcompression" = 's' ]]; then
+	grep -v "^Compression yes" /etc/ssh/sshd_config > /tmp/sshcp && mv /tmp/sshcp /etc/ssh/sshd_config
+	echo "Compression yes" >> /etc/ssh/sshd_config
+fi
+if [[ "$sshcompression" = 'n' ]]; then
+	grep -v "^Compression yes" /etc/ssh/sshd_config > /tmp/sshcp && mv /tmp/sshcp /etc/ssh/sshd_config
+fi
+exit 1
