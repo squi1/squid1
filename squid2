@@ -35,7 +35,7 @@ http_port 8080
 http_port 8799
 http_port 3128
 
-visible_hostname Telegram:@NetGratisMobileE
+visible_hostname $hostname
 
 cache_mem 100 MB
 maximum_object_size_in_memory 64 KB
