@@ -35,7 +35,7 @@ http_port 8080
 http_port 8799
 http_port 3128
 
-visible_hostname $hostname
+visible_hostname Telegram:@FranciscoManim
 
 cache_mem 100 MB
 maximum_object_size_in_memory 64 KB
